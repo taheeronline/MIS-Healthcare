@@ -6,6 +6,8 @@ using Serilog;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using MIS_Healthcare.API.Data;
+using MIS_Healthcare.API.Repository.Implementation;
+using MIS_Healthcare.API.Repository.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +50,8 @@ builder.Host.UseSerilog();
 // Add services to the container.
 
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<iDoctorRepo, DoctorRepo>();
+builder.Services.AddScoped<iPatientRepo, PatientRepo>();
 
 //DbContext injection
 builder.Services.AddDbContext<HealthcareContext>(options =>

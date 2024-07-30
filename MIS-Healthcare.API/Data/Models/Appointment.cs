@@ -1,7 +1,10 @@
-﻿namespace MIS_Healthcare.API.Data.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MIS_Healthcare.API.Data.Models
 {
     public class Appointment
     {
+        [Key]
         public int AppointmentID { get; set; }
         public string Problem { get; set; }
         public int PatientID { get; set; }

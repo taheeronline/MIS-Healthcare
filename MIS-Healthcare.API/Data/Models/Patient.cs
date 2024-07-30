@@ -1,7 +1,10 @@
-﻿namespace MIS_Healthcare.API.Data.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MIS_Healthcare.API.Data.Models
 {
     public class Patient
     {
+        [Key]
         public int PatientID { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
