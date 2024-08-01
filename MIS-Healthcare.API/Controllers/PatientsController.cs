@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MIS_Healthcare.API.Data.DTOs.Patient;
 using MIS_Healthcare.API.Data.Models;
 using MIS_Healthcare.API.Repository.Interface;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MIS_Healthcare.API.Controllers
 {
@@ -18,61 +22,167 @@ namespace MIS_Healthcare.API.Controllers
 
         // GET: api/Patients
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
+        public async Task<ActionResult<IEnumerable<PatientToRead>>> GetPatients()
         {
-            return Ok(await _patientRepository.GetAllPatientsAsync());
+            try
+            {
+                var patients = await _patientRepository.GetAllPatientsAsync();
+                var patientDtos = patients.Select(p => new PatientToRead
+                {
+                    PatientID = p.PatientID,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    Gender = p.Gender,
+                    ContactNumber = p.ContactNumber,
+                    Age = p.Age,
+                    EmailID = p.EmailID,
+                    BloodGroup = p.BloodGroup,
+                    Address = p.Address
+                }).ToList();
+
+                return Ok(patientDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching patients.", details = ex.Message });
+            }
         }
 
         // GET: api/Patients/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Patient>> GetPatient(int id)
+        public async Task<ActionResult<PatientToRead>> GetPatient(int id)
         {
-            var patient = await _patientRepository.GetPatientByIdAsync(id);
-            if (patient == null)
+            try
             {
-                return NotFound();
-            }
+                var patient = await _patientRepository.GetPatientByIdAsync(id);
+                if (patient == null)
+                {
+                    return NotFound();
+                }
 
-            return Ok(patient);
+                var patientDto = new PatientToRead
+                {
+                    PatientID = patient.PatientID,
+                    FirstName = patient.FirstName,
+                    LastName = patient.LastName,
+                    Gender = patient.Gender,
+                    ContactNumber = patient.ContactNumber,
+                    Age = patient.Age,
+                    EmailID = patient.EmailID,
+                    BloodGroup = patient.BloodGroup,
+                    Address = patient.Address
+                };
+
+                return Ok(patientDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching the patient.", details = ex.Message });
+            }
         }
 
         // POST: api/Patients
         [HttpPost]
-        public async Task<ActionResult<Patient>> PostPatient(Patient patient)
+        public async Task<ActionResult<PatientToRead>> PostPatient([FromBody] PatientToRegister patientDto)
         {
-            await _patientRepository.AddPatientAsync(patient);
-            return CreatedAtAction(nameof(GetPatient), new { id = patient.PatientID }, patient);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var patient = new Patient
+                {
+                    FirstName = patientDto.FirstName,
+                    LastName = patientDto.LastName,
+                    Gender = patientDto.Gender,
+                    ContactNumber = patientDto.ContactNumber,
+                    Age = patientDto.Age,
+                    EmailID = patientDto.EmailID,
+                    BloodGroup = patientDto.BloodGroup,
+                    Address = patientDto.Address
+                };
+
+                await _patientRepository.AddPatientAsync(patient);
+
+                var createdPatientDto = new PatientToRead
+                {
+                    PatientID = patient.PatientID,
+                    FirstName = patient.FirstName,
+                    LastName = patient.LastName,
+                    Gender = patient.Gender,
+                    ContactNumber = patient.ContactNumber,
+                    Age = patient.Age,
+                    EmailID = patient.EmailID,
+                    BloodGroup = patient.BloodGroup,
+                    Address = patient.Address
+                };
+
+                return CreatedAtAction(nameof(GetPatient), new { id = patient.PatientID }, createdPatientDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while adding the patient.", details = ex.Message });
+            }
         }
 
         // PUT: api/Patients/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPatient(int id, Patient patient)
+        public async Task<IActionResult> PutPatient(int id, [FromBody] PatientToUpdate patientDto)
         {
-            if (id != patient.PatientID)
+            if (id != patientDto.PatientID)
             {
                 return BadRequest();
             }
 
-            var updated = await _patientRepository.UpdatePatientAsync(patient);
-            if (!updated)
+            try
             {
-                return NotFound();
-            }
+                var patient = new Patient
+                {
+                    PatientID = patientDto.PatientID,
+                    FirstName = patientDto.FirstName,
+                    LastName = patientDto.LastName,
+                    Gender = patientDto.Gender,
+                    ContactNumber = patientDto.ContactNumber,
+                    Age = patientDto.Age,
+                    EmailID = patientDto.EmailID,
+                    BloodGroup = patientDto.BloodGroup,
+                    Address = patientDto.Address
+                };
 
-            return NoContent();
+                var updated = await _patientRepository.UpdatePatientAsync(patient);
+                if (!updated)
+                {
+                    return NotFound();
+                }
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while updating the patient.", details = ex.Message });
+            }
         }
 
         // DELETE: api/Patients/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePatient(int id)
         {
-            var deleted = await _patientRepository.DeletePatientAsync(id);
-            if (!deleted)
+            try
             {
-                return NotFound();
-            }
+                var deleted = await _patientRepository.DeletePatientAsync(id);
+                if (!deleted)
+                {
+                    return NotFound();
+                }
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while deleting the patient.", details = ex.Message });
+            }
         }
     }
 }

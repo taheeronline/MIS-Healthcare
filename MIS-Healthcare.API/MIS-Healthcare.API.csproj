@@ -22,6 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\DTOs\Appointment\" />
+    <Folder Include="Data\DTOs\Feedback\" />
+    <Folder Include="Data\DTOs\Report\" />
     <Folder Include="logs\" />
   </ItemGroup>
 
