@@ -6,12 +6,12 @@ using System.Text;
 
 namespace MIS_Healthcare.API.Middleware
 {
-    public interface ITokenService
+    public interface iTokenService
     {
         string GenerateToken(User user);
     }
 
-    public class TokenService : ITokenService
+    public class TokenService : iTokenService
     {
         private readonly IConfiguration _configuration;
 

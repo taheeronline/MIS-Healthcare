@@ -7,9 +7,12 @@ GO
 /*************************Users Table******************************/
 create table Users(
 	userID int primary key identity(1,1),
-	userName varchar(50),
-    userType varchar(100),
-	Password varchar(100)
+    FirstName varchar(50),
+    LastName varchar(50),
+	UserName varchar(50) Unique,
+    UserType varchar(100),
+	PasswordHash varchar(100),
+    PasswordSalt varchar(100)
 );
 
 /****************************Patients Table*************************************/

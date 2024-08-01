@@ -48,10 +48,13 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
-
-builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<iUserRepo, UserRepo>(); 
+builder.Services.AddScoped<iTokenService, TokenService>();
 builder.Services.AddScoped<iDoctorRepo, DoctorRepo>();
 builder.Services.AddScoped<iPatientRepo, PatientRepo>();
+builder.Services.AddScoped<iAppointmentRepo, AppointmentRepo>();
+builder.Services.AddScoped<iReportRepo, ReportRepo>();
+builder.Services.AddScoped<iFeedbackRepo, FeedbackRepo>();
 
 //DbContext injection
 builder.Services.AddDbContext<HealthcareContext>(options =>
