@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MIS_Healthcare.API.Data.DTOs.Doctor;
 using MIS_Healthcare.API.Data.Models;
 using MIS_Healthcare.API.Middleware;
 using MIS_Healthcare.API.Repository.Interface;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace MIS_Healthcare.API.Controllers
 {
@@ -50,6 +47,31 @@ namespace MIS_Healthcare.API.Controllers
                 return StatusCode(500, new { message = "An error occurred while fetching doctors.", details = ex.Message });
             }
         }
+
+        [HttpGet("DoctorList")]
+        public async Task<IActionResult> GetDoctorList()
+        {
+            try
+            {
+                var doctors = await _doctorRepository.GetAllDoctorsAsync();
+                var doctorNameDtos = doctors.Select(d => new DoctorList
+                {
+                    DoctorID = d.DoctorID,
+                    FullName = $"{d.FirstName} {d.LastName}"
+                }).ToList();
+
+                return Ok(doctorNameDtos);
+            }
+            catch (RepositoryException ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching doctor names.", details = ex.Message });
+            }
+        }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDoctorById(int id)

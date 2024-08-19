@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MIS_Healthcare.API.Data.Models;
 using MIS_Healthcare.API.Middleware;
 using MIS_Healthcare.API.Repository.Interface;

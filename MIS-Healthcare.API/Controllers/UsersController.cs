@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using MIS_Healthcare.API.Data.DTOs.User;
 using MIS_Healthcare.API.Data.Models;

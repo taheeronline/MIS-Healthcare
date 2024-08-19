@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using MIS_Healthcare.API.Data.DTOs.Report;
 using MIS_Healthcare.API.Data.Models;
+using MIS_Healthcare.API.Middleware;
 using MIS_Healthcare.API.Repository.Interface;
 
 namespace MIS_Healthcare.API.Controllers
@@ -18,61 +19,178 @@ namespace MIS_Healthcare.API.Controllers
 
         // GET: api/Reports
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Report>>> GetReports()
+        public async Task<ActionResult<IEnumerable<ReportToRead>>> GetReports()
         {
-            return Ok(await _reportRepository.GetAllReportsAsync());
+            try
+            {
+                var reports = await _reportRepository.GetAllReportsAsync();
+                var reportDtos = reports.Select(r => new ReportToRead
+                {
+                    ReportID = r.ReportID,
+                    AppointmentID = r.AppointmentID,
+                    PatientID = r.PatientID,
+                    PatientName = $"{r.Patient.FirstName} {r.Patient.LastName}",
+                    DoctorID = r.DoctorID,
+                    DoctorName = $"{r.Doctor.FirstName} {r.Doctor.LastName}",
+                    MedicinePrescribed = r.MedicinePrescribed,
+                    DoctorComment = r.DoctorComment
+                }).ToList();
+
+                return Ok(reportDtos);
+            }
+            catch (RepositoryException ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching reports.", details = ex.Message });
+            }
         }
 
         // GET: api/Reports/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Report>> GetReport(int id)
+        public async Task<ActionResult<ReportToRead>> GetReport(int id)
         {
-            var report = await _reportRepository.GetReportByIdAsync(id);
-            if (report == null)
+            try
             {
-                return NotFound();
-            }
+                var report = await _reportRepository.GetReportByIdAsync(id);
+                if (report == null)
+                {
+                    return NotFound();
+                }
 
-            return Ok(report);
+                var reportDto = new ReportToRead
+                {
+                    ReportID = report.ReportID,
+                    AppointmentID = report.AppointmentID,
+                    PatientID = report.PatientID,
+                    PatientName = $"{report.Patient.FirstName} {report.Patient.LastName}",
+                    DoctorID = report.DoctorID,
+                    DoctorName = $"{report.Doctor.FirstName} {report.Doctor.LastName}",
+                    MedicinePrescribed = report.MedicinePrescribed,
+                    DoctorComment = report.DoctorComment
+                };
+
+                return Ok(reportDto);
+            }
+            catch (RepositoryException ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching the report.", details = ex.Message });
+            }
         }
 
         // POST: api/Reports
         [HttpPost]
-        public async Task<ActionResult<Report>> PostReport(Report report)
+        public async Task<ActionResult<ReportToRead>> PostReport([FromBody] ReportToRegister reportDto)
         {
-            await _reportRepository.AddReportAsync(report);
-            return CreatedAtAction(nameof(GetReport), new { id = report.ReportID }, report);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var report = new Report
+                {
+                    AppointmentID = reportDto.AppointmentID,
+                    PatientID = reportDto.PatientID,
+                    DoctorID = reportDto.DoctorID,
+                    MedicinePrescribed = reportDto.MedicinePrescribed,
+                    DoctorComment = reportDto.DoctorComment
+                };
+
+                await _reportRepository.AddReportAsync(report);
+
+                var createdReportDto = new ReportToRead
+                {
+                    ReportID = report.ReportID,
+                    AppointmentID = report.AppointmentID,
+                    PatientID = report.PatientID,
+                    PatientName = $"{report.Patient.FirstName} {report.Patient.LastName}",
+                    DoctorID = report.DoctorID,
+                    DoctorName = $"{report.Doctor.FirstName} {report.Doctor.LastName}",
+                    MedicinePrescribed = report.MedicinePrescribed,
+                    DoctorComment = report.DoctorComment
+                };
+
+                return CreatedAtAction(nameof(GetReport), new { id = report.ReportID }, createdReportDto);
+            }
+            catch (RepositoryException ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while adding the report.", details = ex.Message });
+            }
         }
 
         // PUT: api/Reports/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutReport(int id, Report report)
+        public async Task<IActionResult> PutReport(int id, [FromBody] ReportToUpdate reportDto)
         {
-            if (id != report.ReportID)
+            if (id != reportDto.ReportID)
             {
                 return BadRequest();
             }
 
-            var updated = await _reportRepository.UpdateReportAsync(report);
-            if (!updated)
+            try
             {
-                return NotFound();
-            }
+                var report = new Report
+                {
+                    ReportID = reportDto.ReportID,
+                    AppointmentID = reportDto.AppointmentID,
+                    PatientID = reportDto.PatientID,
+                    DoctorID = reportDto.DoctorID,
+                    MedicinePrescribed = reportDto.MedicinePrescribed,
+                    DoctorComment = reportDto.DoctorComment
+                };
 
-            return NoContent();
+                var updated = await _reportRepository.UpdateReportAsync(report);
+                if (!updated)
+                {
+                    return NotFound();
+                }
+
+                return NoContent();
+            }
+            catch (RepositoryException ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while updating the report.", details = ex.Message });
+            }
         }
 
         // DELETE: api/Reports/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReport(int id)
         {
-            var deleted = await _reportRepository.DeleteReportAsync(id);
-            if (!deleted)
+            try
             {
-                return NotFound();
-            }
+                var deleted = await _reportRepository.DeleteReportAsync(id);
+                if (!deleted)
+                {
+                    return NotFound();
+                }
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (RepositoryException ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while deleting the report.", details = ex.Message });
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MIS_Healthcare.API.Data;
 using MIS_Healthcare.API.Data.Models;
+using MIS_Healthcare.API.Middleware;
 using MIS_Healthcare.API.Repository.Interface;
 
 namespace MIS_Healthcare.API.Repository.Implementation
@@ -16,18 +17,39 @@ namespace MIS_Healthcare.API.Repository.Implementation
 
         public async Task<IEnumerable<Patient>> GetAllPatientsAsync()
         {
-            return await _context.Patients.ToListAsync();
+            try
+            {
+                return await _context.Patients.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error fetching all feedback.", ex);
+            }
         }
 
         public async Task<Patient> GetPatientByIdAsync(int id)
         {
-            return await _context.Patients.FindAsync(id);
+            try
+            {
+                return await _context.Patients.FindAsync(id);
+            }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error fetching all feedback.", ex);
+            }
         }
 
         public async Task AddPatientAsync(Patient patient)
         {
-            await _context.Patients.AddAsync(patient);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.Patients.AddAsync(patient);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error fetching all feedback.", ex);
+            }
         }
 
         public async Task<bool> UpdatePatientAsync(Patient patient)
@@ -49,19 +71,30 @@ namespace MIS_Healthcare.API.Repository.Implementation
                     throw;
                 }
             }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error fetching all feedback.", ex);
+            }
         }
 
         public async Task<bool> DeletePatientAsync(int id)
         {
-            var patient = await _context.Patients.FindAsync(id);
-            if (patient == null)
+            try
             {
-                return false;
-            }
+                var patient = await _context.Patients.FindAsync(id);
+                if (patient == null)
+                {
+                    return false;
+                }
 
-            _context.Patients.Remove(patient);
-            await _context.SaveChangesAsync();
-            return true;
+                _context.Patients.Remove(patient);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error fetching all feedback.", ex);
+            }
         }
 
         private async Task<bool> PatientExists(int id)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MIS_Healthcare.API.Data;
 using MIS_Healthcare.API.Data.Models;
+using MIS_Healthcare.API.Middleware;
 using MIS_Healthcare.API.Repository.Interface;
 
 namespace MIS_Healthcare.API.Repository.Implementation
@@ -16,24 +17,45 @@ namespace MIS_Healthcare.API.Repository.Implementation
 
         public async Task<IEnumerable<Appointment>> GetAllAppointmentsAsync()
         {
-            return await _context.Appointments
-                .Include(a => a.Patient)
-                .Include(a => a.Doctor)
-                .ToListAsync();
+            try
+            {
+                return await _context.Appointments
+                                     .Include(a => a.Patient) // Include the Patient entity
+                                     .Include(a => a.Doctor)  // Include the Doctor entity
+                                     .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error fetching all appointment.", ex);
+            }
         }
 
         public async Task<Appointment> GetAppointmentByIdAsync(int id)
         {
-            return await _context.Appointments
-                .Include(a => a.Patient)
-                .Include(a => a.Doctor)
-                .FirstOrDefaultAsync(a => a.AppointmentID == id);
+            try
+            {
+                return await _context.Appointments
+                        .Include(a => a.Patient)
+                        .Include(a => a.Doctor)
+                        .FirstOrDefaultAsync(a => a.AppointmentID == id);
+            }
+            catch (Exception ex)
+            {
+                throw new RepositoryException($"Error fetching appointment with ID {id}.", ex);
+            }
         }
 
         public async Task AddAppointmentAsync(Appointment appointment)
         {
-            await _context.Appointments.AddAsync(appointment);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Appointments.Add(appointment);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error adding appointment.", ex);
+            }
         }
 
         public async Task<bool> UpdateAppointmentAsync(Appointment appointment)
@@ -46,7 +68,7 @@ namespace MIS_Healthcare.API.Repository.Implementation
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await AppointmentExists(appointment.AppointmentID))
+                if (!AppointmentExists(appointment.AppointmentID))
                 {
                     return false;
                 }
@@ -55,24 +77,35 @@ namespace MIS_Healthcare.API.Repository.Implementation
                     throw;
                 }
             }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error fetching all appointment.", ex);
+            }
         }
 
         public async Task<bool> DeleteAppointmentAsync(int id)
         {
-            var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment == null)
+            try
             {
-                return false;
-            }
+                var appointment = await _context.Appointments.FindAsync(id);
+                if (appointment == null)
+                {
+                    return false;
+                }
 
-            _context.Appointments.Remove(appointment);
-            await _context.SaveChangesAsync();
-            return true;
+                _context.Appointments.Remove(appointment);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error updating appointment.", ex);
+            }
         }
 
-        private async Task<bool> AppointmentExists(int id)
+        private bool AppointmentExists(int id)
         {
-            return await _context.Appointments.AnyAsync(e => e.AppointmentID == id);
+            return _context.Appointments.Any(e => e.AppointmentID == id);
         }
     }
 }

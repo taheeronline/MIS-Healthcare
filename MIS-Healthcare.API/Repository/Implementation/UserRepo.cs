@@ -1,10 +1,7 @@
 ﻿using MIS_Healthcare.API.Data.Models;
 using MIS_Healthcare.API.Data;
-using MIS_Healthcare.API.Middleware;
 using MIS_Healthcare.API.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace MIS_Healthcare.API.Repository.Implementation
 {

@@ -1,0 +1,56 @@
+﻿@model List<MIS_Healthcare.UI.DTOs.Patient.PatientToRead>
+
+@{
+    ViewData["Title"] = "Patients List";
+}
+
+<a asp-action="Create" class="btn btn-success mt-4">Create New Patient</a>
+<hr />
+<!-- Search Form -->
+<form asp-action="Index" method="get" class="form-inline mb-4">
+    <div class="form-group mb-2">
+        <input type="text" name="ContactNumner" class="form-control form-control-sm mr-2 mb-2" placeholder="Search by Contact Number" value="@ViewBag.ContactNumber" style="width: 400px;" />
+        <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    </div>
+</form>
+
+
+<hr />
+<div class="container mt-4">
+    <div class="row">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var patient in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                            @patient.FirstName @patient.LastName
+                            <form asp-action="Delete" asp-route-id="@patient.PatientID" method="post" class="mb-0" onsubmit="return confirm('Are you sure you want to delete this patient?');">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text"><strong>Gender:</strong> @patient.Gender</p>
+                            <p class="card-text"><strong>Age:</strong> @patient.Age</p>
+                            <p class="card-text"><strong>Contact:</strong> @patient.ContactNumber</p>
+                            <p class="card-text"><strong>Email:</strong> @patient.EmailID</p>
+                            <p class="card-text"><strong>Blood Group:</strong> @patient.BloodGroup</p>
+                            <p class="card-text"><strong>Address:</strong> @patient.Address</p>
+                            <a href="@Url.Action("Edit", "Patients", new { id = patient.PatientID })" class="btn btn-primary">Edit</a>
+@*                             <a href="@Url.Action("Details", "Patients", new { id = patient.PatientID })" class="btn btn-info">Details</a>
+ *@                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-warning" role="alert">
+                    No patients found.
+                </div>
+            </div>
+        }
+    </div>
+</div>

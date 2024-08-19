@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIS-Healthcare.API", "MIS-Healthcare.API\MIS-Healthcare.API.csproj", "{1A59ADCB-AE20-4CB5-97CA-2026F66BD868}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MIS-Healthcare.API", "MIS-Healthcare.API\MIS-Healthcare.API.csproj", "{1A59ADCB-AE20-4CB5-97CA-2026F66BD868}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIS-Healthcare.Blazor", "MIS-Healthcare.Blazor\MIS-Healthcare.Blazor.csproj", "{27F2DF6C-9B63-4D20-9CD4-6E0A37807555}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIS-Healthcare.UI", "MIS-Healthcare.UI\MIS-Healthcare.UI.csproj", "{453AC4BC-B4DF-417E-8A49-A93E273DE92E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{1A59ADCB-AE20-4CB5-97CA-2026F66BD868}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A59ADCB-AE20-4CB5-97CA-2026F66BD868}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A59ADCB-AE20-4CB5-97CA-2026F66BD868}.Release|Any CPU.Build.0 = Release|Any CPU
-		{27F2DF6C-9B63-4D20-9CD4-6E0A37807555}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{27F2DF6C-9B63-4D20-9CD4-6E0A37807555}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{27F2DF6C-9B63-4D20-9CD4-6E0A37807555}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{27F2DF6C-9B63-4D20-9CD4-6E0A37807555}.Release|Any CPU.Build.0 = Release|Any CPU
+		{453AC4BC-B4DF-417E-8A49-A93E273DE92E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{453AC4BC-B4DF-417E-8A49-A93E273DE92E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{453AC4BC-B4DF-417E-8A49-A93E273DE92E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{453AC4BC-B4DF-417E-8A49-A93E273DE92E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

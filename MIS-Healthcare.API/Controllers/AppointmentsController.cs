@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using MIS_Healthcare.API.Data.DTOs.Appointment;
 using MIS_Healthcare.API.Data.Models;
 using MIS_Healthcare.API.Repository.Interface;
 
@@ -10,69 +10,192 @@ namespace MIS_Healthcare.API.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly iAppointmentRepo _appointmentRepository;
+        private readonly iDoctorRepo _doctorRepository;
+        private readonly iPatientRepo _patientRepository;
 
-        public AppointmentsController(iAppointmentRepo appointmentRepository)
+        public AppointmentsController(iAppointmentRepo appointmentRepository, iDoctorRepo doctorRepository, iPatientRepo patientRepository)
         {
             _appointmentRepository = appointmentRepository;
+            _doctorRepository = doctorRepository;
+            _patientRepository = patientRepository;
         }
 
         // GET: api/Appointments
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+        public async Task<ActionResult<IEnumerable<AppointmentToRead>>> GetAppointments()
         {
-            return Ok(await _appointmentRepository.GetAllAppointmentsAsync());
+            try
+            {
+                var appointments = await _appointmentRepository.GetAllAppointmentsAsync();
+                var appointmentDtos = appointments.Select(a => new AppointmentToRead
+                {
+                    AppointmentID = a.AppointmentID,
+                    Problem = a.Problem,
+                    PatientID = a.PatientID,
+                    PatientName = $"{a.Patient.FirstName} {a.Patient.LastName}", 
+                    DoctorName = $"{a.Doctor.FirstName} {a.Doctor.LastName}",
+                    DoctorID = a.DoctorID,
+                    DoctorType = a.Doctor.DoctorType,
+                    Qualification = a.Doctor.DoctorType,
+                    DoctorFees = a.DoctorFees,
+                    PaymentMode = a.PaymentMode,
+                    PaymentStatus=a.PaymentStatus,
+                    AppointmentStatus = a.AppointmentStatus,
+                    AppointmentDate = a.AppointmentDate
+                }).ToList();
+
+                return Ok(appointmentDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching appointments.", details = ex.Message });
+            }
         }
 
         // GET: api/Appointments/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Appointment>> GetAppointment(int id)
+        public async Task<ActionResult<AppointmentToRead>> GetAppointment(int id)
         {
-            var appointment = await _appointmentRepository.GetAppointmentByIdAsync(id);
-            if (appointment == null)
+            try
             {
-                return NotFound();
-            }
+                var appointment = await _appointmentRepository.GetAppointmentByIdAsync(id);
+                if (appointment == null)
+                {
+                    return NotFound();
+                }
 
-            return Ok(appointment);
+                var appointmentDto = new AppointmentToRead
+                {
+                    AppointmentID = appointment.AppointmentID,
+                    Problem = appointment.Problem,
+                    PatientID = appointment.PatientID,
+                    PatientName = $"{appointment.Patient.FirstName} {appointment.Patient.LastName}", 
+                    DoctorName = $"{appointment.Doctor.FirstName} {appointment.Doctor.LastName}",
+                    DoctorID = appointment.DoctorID,
+                    DoctorType = appointment.Doctor.DoctorType,
+                    Qualification = appointment.Doctor.Qualification,
+                    DoctorFees = appointment.Doctor.EntryCharge,
+                    PaymentStatus = appointment.PaymentStatus,
+                    PaymentMode = appointment.PaymentMode,
+                    AppointmentStatus = appointment.AppointmentStatus,
+                    AppointmentDate = appointment.AppointmentDate
+                };
+
+                return Ok(appointmentDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching the appointment.", details = ex.Message });
+            }
         }
 
         // POST: api/Appointments
         [HttpPost]
-        public async Task<ActionResult<Appointment>> PostAppointment(Appointment appointment)
+        public async Task<ActionResult<AppointmentToRead>> PostAppointment([FromBody] AppointmentToRegister appointmentDto)
         {
-            await _appointmentRepository.AddAppointmentAsync(appointment);
-            return CreatedAtAction(nameof(GetAppointment), new { id = appointment.AppointmentID }, appointment);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var appointment = new Appointment
+                {
+                    Problem = appointmentDto.Problem,
+                    PatientID = appointmentDto.PatientID,
+                    DoctorID = appointmentDto.DoctorID,
+                    PaymentMode = appointmentDto.PaymentMode,
+                    AppointmentStatus = appointmentDto.AppointmentStatus,
+                    AppointmentDate = appointmentDto.AppointmentDate
+                };
+
+                await _appointmentRepository.AddAppointmentAsync(appointment);
+
+                // Fetch the Patient and Doctor details for full names
+                var patient = await _patientRepository.GetPatientByIdAsync(appointment.PatientID);
+                var doctor = await _doctorRepository.GetDoctorByIdAsync(appointment.DoctorID);
+
+                var createdAppointmentDto = new AppointmentToRead
+                {
+                    AppointmentID = appointment.AppointmentID,
+                    Problem = appointment.Problem,
+                    PatientID = appointment.PatientID,
+                    PatientName = $"{patient.FirstName} {patient.LastName}",
+                    DoctorName = $"{doctor.FirstName} {doctor.LastName}",
+                    DoctorID = appointment.DoctorID,
+                    DoctorType = appointment.Doctor.DoctorType,
+                    Qualification = appointment.Doctor.DoctorType,
+                    DoctorFees = appointment.DoctorFees,
+                    PaymentStatus = appointment.PaymentStatus,
+                    PaymentMode = appointment.PaymentMode,
+                    AppointmentStatus = appointment.AppointmentStatus,
+                    AppointmentDate = appointment.AppointmentDate
+                };
+
+                return CreatedAtAction(nameof(GetAppointment), new { id = appointment.AppointmentID }, createdAppointmentDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while adding the appointment.", details = ex.Message });
+            }
         }
 
         // PUT: api/Appointments/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAppointment(int id, Appointment appointment)
+        public async Task<IActionResult> PutAppointment(int id, [FromBody] AppointmentToUpdate appointmentDto)
         {
-            if (id != appointment.AppointmentID)
+            if (id != appointmentDto.AppointmentID)
             {
                 return BadRequest();
             }
 
-            var updated = await _appointmentRepository.UpdateAppointmentAsync(appointment);
-            if (!updated)
+            try
             {
-                return NotFound();
-            }
+                var appointment = new Appointment
+                {
+                    AppointmentID = appointmentDto.AppointmentID,
+                    Problem = appointmentDto.Problem,
+                    PatientID = appointmentDto.PatientID,
+                    DoctorID = appointmentDto.DoctorID,
+                    PaymentStatus = appointmentDto.PaymentStatus,
+                    PaymentMode = appointmentDto.PaymentMode,
+                    AppointmentStatus = appointmentDto.AppointmentStatus,
+                    AppointmentDate = appointmentDto.AppointmentDate
+                };
 
-            return NoContent();
+                var updated = await _appointmentRepository.UpdateAppointmentAsync(appointment);
+                if (!updated)
+                {
+                    return NotFound();
+                }
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while updating the appointment.", details = ex.Message });
+            }
         }
 
         // DELETE: api/Appointments/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAppointment(int id)
         {
-            var deleted = await _appointmentRepository.DeleteAppointmentAsync(id);
-            if (!deleted)
+            try
             {
-                return NotFound();
-            }
+                var deleted = await _appointmentRepository.DeleteAppointmentAsync(id);
+                if (!deleted)
+                {
+                    return NotFound();
+                }
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while deleting the appointment.", details = ex.Message });
+            }
         }
     }
 }
