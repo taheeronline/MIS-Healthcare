@@ -19,10 +19,12 @@ namespace MIS_Healthcare.API.Repository.Implementation
         {
             try
             {
-                return await _context.Appointments
-                                     .Include(a => a.Patient) // Include the Patient entity
-                                     .Include(a => a.Doctor)  // Include the Doctor entity
-                                     .ToListAsync();
+                var appointments= await _context.Appointments
+                                                .Include(a=>a.Doctor)
+                                                .Include(a=>a.Patient)
+                                                .Where(a=>a.AppointmentStatus!="Complete")
+                                                .ToListAsync();
+                return appointments;
             }
             catch (Exception ex)
             {

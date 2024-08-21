@@ -6,53 +6,50 @@
 
 <h2>Create Appointment</h2>
 
-<form asp-action="Create" method="post" class="form-horizontal">
-    <div class="form-group">
-        <label asp-for="Problem" class="control-label"></label>
-        <input asp-for="Problem" class="form-control" />
-        <span asp-validation-for="Problem" class="text-danger"></span>
-    </div>
+<div class="row justify-content-left">
+    <div class="col-md-6">
+        <!-- Adjust the column size as needed -->
+        <form asp-action="Create" method="post" class="form-horizontal">
+            <div class="form-group">
+                <label asp-for="Problem" class="control-label"></label>
+                <input asp-for="Problem" class="form-control form-control-sm" />
+                <span asp-validation-for="Problem" class="text-danger"></span>
+            </div>
 
-    <div class="form-group">
-        <label asp-for="PatientID" class="control-label">Patient</label>
-        <select asp-for="PatientID" class="form-control" asp-items="ViewBag.Patients">
-            <option value="">-- Select Patient --</option>
-        </select>
-        <span asp-validation-for="PatientID" class="text-danger"></span>
-    </div>
+            <div class="form-group">
+                <label asp-for="PatientID" class="control-label">Patient</label>
+                <select asp-for="PatientID" class="form-control form-control-sm" asp-items="ViewBag.Patients">
+                    <option value="">-- Select Patient --</option>
+                </select>
+                <span asp-validation-for="PatientID" class="text-danger"></span>
+            </div>
 
-    <div class="form-group">
-        <label asp-for="DoctorID" class="control-label">Doctor</label>
-        <select asp-for="DoctorID" class="form-control" asp-items="ViewBag.Doctors">
-            <option value="">-- Select Doctor --</option>
-        </select>
-        <span asp-validation-for="DoctorID" class="text-danger"></span>
-    </div>
+            <div class="form-group">
+                <label asp-for="DoctorID" class="control-label">Doctor</label>
+                <select asp-for="DoctorID" class="form-control form-control-sm" asp-items="ViewBag.Doctors">
+                    <option value="">-- Select Doctor --</option>
+                </select>
+                <span asp-validation-for="DoctorID" class="text-danger"></span>
+            </div>
 
+            <div class="form-group">
+                <label asp-for="AppointmentDate" class="control-label"></label>
+                <input asp-for="AppointmentDate" class="form-control form-control-sm" type="date" />
+                <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+            </div>
 
-    <div class="form-group">
-        <label asp-for="AppointmentDate" class="control-label"></label>
-        <input asp-for="AppointmentDate" class="form-control" type="date" />
-        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
-    </div>
+            <!-- Hidden fields for default values -->
+            <input asp-for="PaymentMode" type="hidden" />
+            <input asp-for="AppointmentStatus" type="hidden" />
+            <input asp-for="PaymentStatus" type="hidden" />
 
-    <div class="form-group">
-        <label asp-for="PaymentMode" class="control-label"></label>
-        <input asp-for="PaymentMode" class="form-control" />
-        <span asp-validation-for="PaymentMode" class="text-danger"></span>
+            <div class="form-group text-left">
+                <input type="submit" value="Create" class="btn btn-primary btn-sm mt-2" />
+                <a asp-action="Index" class="btn btn-info btn-sm mt-2">Cancel</a>
+            </div>
+        </form>
     </div>
-
-    <div class="form-group">
-        <label asp-for="AppointmentStatus" class="control-label"></label>
-        <input asp-for="AppointmentStatus" class="form-control" />
-        <span asp-validation-for="AppointmentStatus" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <input type="submit" value="Create" class="btn btn-primary" />
-        <a asp-action="Index" class="btn btn-default">Cancel</a>
-    </div>
-</form>
+</div>
 
 @section Scripts {
     @{

@@ -66,7 +66,15 @@ namespace MIS_Healthcare.MVC.Controllers
                 ViewBag.Patients = new SelectList(patients, "PatientID", "FullName");
                 ViewBag.Doctors = new SelectList(doctors, "DoctorID", "FullName");
 
-                return View();
+                var appointmentDto = new AppointmentToRegister
+                {
+                    AppointmentDate=DateTime.Today,
+                    PaymentStatus = "Pending",
+                    AppointmentStatus = "Scheduled",
+                    PaymentMode="None" 
+                };
+
+                return View(appointmentDto);
             }
 
             return View("Error");
@@ -81,13 +89,13 @@ namespace MIS_Healthcare.MVC.Controllers
             {
                 return View(appointmentDto);
             }
-
+            //appointmentDto.PaymentStatus = "Pending";
             var jsonContent = new StringContent(JsonSerializer.Serialize(appointmentDto), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync("Appointments", jsonContent);
 
             if (response.IsSuccessStatusCode)
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index","Home");
             }
 
             ViewBag.ErrorMessage = "An error occurred while adding the appointment.";
@@ -135,6 +143,39 @@ namespace MIS_Healthcare.MVC.Controllers
             ViewBag.ErrorMessage = "An error occurred while updating the appointment.";
             return View("Error");
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseAppointment(int appointmentId, int doctorFees, string paymentMode)
+        {
+            // Fetch the appointment by ID
+            var appointment = await _httpClient.GetFromJsonAsync<AppointmentToRead>($"Appointments/{appointmentId}");
+
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+
+            // Update the appointment status, fees, and payment mode
+            appointment.AppointmentStatus = "Complete";
+            appointment.DoctorFees = doctorFees;
+            appointment.PaymentMode = paymentMode;
+            appointment.PaymentStatus = "Paid";
+
+            // Send the updated appointment data back to the API
+            var jsonContent = new StringContent(JsonSerializer.Serialize(appointment), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync($"Appointments/{appointmentId}", jsonContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // After completion, redirect back to the dashboard
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.ErrorMessage = "An error occurred while closing the appointment.";
+            return View("Error");
+        }
+
 
         // POST: Appointments/Delete/5
         [HttpPost, ActionName("Delete")]

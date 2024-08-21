@@ -39,7 +39,7 @@ namespace MIS_Healthcare.API.Controllers
                     Qualification = a.Doctor.DoctorType,
                     DoctorFees = a.DoctorFees,
                     PaymentMode = a.PaymentMode,
-                    PaymentStatus=a.PaymentStatus,
+                    PaymentStatus= a.PaymentStatus ?? "Pending",
                     AppointmentStatus = a.AppointmentStatus,
                     AppointmentDate = a.AppointmentDate
                 }).ToList();
@@ -75,7 +75,7 @@ namespace MIS_Healthcare.API.Controllers
                     DoctorType = appointment.Doctor.DoctorType,
                     Qualification = appointment.Doctor.Qualification,
                     DoctorFees = appointment.Doctor.EntryCharge,
-                    PaymentStatus = appointment.PaymentStatus,
+                    PaymentStatus = appointment.PaymentStatus ?? "Not Paid",
                     PaymentMode = appointment.PaymentMode,
                     AppointmentStatus = appointment.AppointmentStatus,
                     AppointmentDate = appointment.AppointmentDate
@@ -106,6 +106,7 @@ namespace MIS_Healthcare.API.Controllers
                     PatientID = appointmentDto.PatientID,
                     DoctorID = appointmentDto.DoctorID,
                     PaymentMode = appointmentDto.PaymentMode,
+                    PaymentStatus=appointmentDto.PaymentStatus,
                     AppointmentStatus = appointmentDto.AppointmentStatus,
                     AppointmentDate = appointmentDto.AppointmentDate
                 };
