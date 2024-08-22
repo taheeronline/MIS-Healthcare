@@ -6,7 +6,7 @@ using MIS_Healthcare.UI.DTOs.Patient;
 using System.Text;
 using System.Text.Json;
 
-namespace MIS_Healthcare.MVC.Controllers
+namespace MIS_Healthcare.UI.Controllers
 {
     public class AppointmentsController : Controller
     {
@@ -18,66 +18,89 @@ namespace MIS_Healthcare.MVC.Controllers
             _httpClient.BaseAddress = new Uri("https://localhost:7147/api/"); // Replace with your actual API URL
         }
 
-        // GET: Appointmentss
+        // GET: Appointments
         public async Task<IActionResult> Index()
         {
-            var response = await _httpClient.GetAsync("Appointments");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var appointments = JsonSerializer.Deserialize<List<AppointmentToRead>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var response = await _httpClient.GetAsync("Appointments");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var appointments = JsonSerializer.Deserialize<List<AppointmentToRead>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                return View(appointments);
+                    return View(appointments);
+                }
+
+                ViewBag.ErrorMessage = "An error occurred while fetching appointments.";
+                return View("Error");
             }
-
-            ViewBag.ErrorMessage = "An error occurred while fetching appointments.";
-            return View("Error");
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         // GET: Appointments/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var response = await _httpClient.GetAsync($"Appointments/{id}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var appointment = JsonSerializer.Deserialize<AppointmentToRead>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                return View(appointment);
-            }
+                var response = await _httpClient.GetAsync($"Appointments/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var appointment = JsonSerializer.Deserialize<AppointmentToRead>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return View(appointment);
+                }
 
-            return NotFound();
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         // GET: Appointments/Create
         public async Task<IActionResult> Create()
         {
-            // Fetch patients and doctors from the API or repository
-            var patientsResponse = await _httpClient.GetAsync("Patients/PatientList");
-            var doctorsResponse = await _httpClient.GetAsync("Doctors/DoctorList");
-
-            if (patientsResponse.IsSuccessStatusCode && doctorsResponse.IsSuccessStatusCode)
+            try
             {
-                var patientsJson = await patientsResponse.Content.ReadAsStringAsync();
-                var doctorsJson = await doctorsResponse.Content.ReadAsStringAsync();
+                var patientsResponse = await _httpClient.GetAsync("Patients/PatientList");
+                var doctorsResponse = await _httpClient.GetAsync("Doctors/DoctorList");
 
-                var patients = JsonSerializer.Deserialize<List<PatientList>>(patientsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                var doctors = JsonSerializer.Deserialize<List<DoctorList>>(doctorsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                ViewBag.Patients = new SelectList(patients, "PatientID", "FullName");
-                ViewBag.Doctors = new SelectList(doctors, "DoctorID", "FullName");
-
-                var appointmentDto = new AppointmentToRegister
+                if (patientsResponse.IsSuccessStatusCode && doctorsResponse.IsSuccessStatusCode)
                 {
-                    AppointmentDate=DateTime.Today,
-                    PaymentStatus = "Pending",
-                    AppointmentStatus = "Scheduled",
-                    PaymentMode="None" 
-                };
+                    var patientsJson = await patientsResponse.Content.ReadAsStringAsync();
+                    var doctorsJson = await doctorsResponse.Content.ReadAsStringAsync();
 
-                return View(appointmentDto);
+                    var patients = JsonSerializer.Deserialize<List<PatientList>>(patientsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var doctors = JsonSerializer.Deserialize<List<DoctorList>>(doctorsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    ViewBag.Patients = new SelectList(patients, "PatientID", "FullName");
+                    ViewBag.Doctors = new SelectList(doctors, "DoctorID", "FullName");
+
+                    var appointmentDto = new AppointmentToRegister
+                    {
+                        AppointmentDate = DateTime.Today,
+                        PaymentStatus = "Pending",
+                        AppointmentStatus = "Scheduled",
+                        PaymentMode = "None"
+                    };
+
+                    return View(appointmentDto);
+                }
+
+                return View("Error");
             }
-
-            return View("Error");
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         // POST: Appointments/Create
@@ -89,32 +112,48 @@ namespace MIS_Healthcare.MVC.Controllers
             {
                 return View(appointmentDto);
             }
-            //appointmentDto.PaymentStatus = "Pending";
-            var jsonContent = new StringContent(JsonSerializer.Serialize(appointmentDto), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("Appointments", jsonContent);
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return RedirectToAction("Index","Home");
-            }
+                var jsonContent = new StringContent(JsonSerializer.Serialize(appointmentDto), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("Appointments", jsonContent);
 
-            ViewBag.ErrorMessage = "An error occurred while adding the appointment.";
-            return View("Error");
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+
+                ViewBag.ErrorMessage = "An error occurred while adding the appointment.";
+                return View("Error");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         // GET: Appointments/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var response = await _httpClient.GetAsync($"Appointments/{id}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var appointment = JsonSerializer.Deserialize<AppointmentToUpdate>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var response = await _httpClient.GetAsync($"Appointments/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var appointment = JsonSerializer.Deserialize<AppointmentToUpdate>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                return View(appointment);
+                    return View(appointment);
+                }
+
+                return NotFound();
             }
-
-            return NotFound();
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         // POST: Appointments/Edit/5
@@ -132,65 +171,84 @@ namespace MIS_Healthcare.MVC.Controllers
                 return View(appointmentDto);
             }
 
-            var jsonContent = new StringContent(JsonSerializer.Serialize(appointmentDto), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"Appointments/{id}", jsonContent);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return RedirectToAction(nameof(Index));
-            }
+                var jsonContent = new StringContent(JsonSerializer.Serialize(appointmentDto), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync($"Appointments/{id}", jsonContent);
 
-            ViewBag.ErrorMessage = "An error occurred while updating the appointment.";
-            return View("Error");
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ViewBag.ErrorMessage = "An error occurred while updating the appointment.";
+                return View("Error");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CloseAppointment(int appointmentId, int doctorFees, string paymentMode)
         {
-            // Fetch the appointment by ID
-            var appointment = await _httpClient.GetFromJsonAsync<AppointmentToRead>($"Appointments/{appointmentId}");
-
-            if (appointment == null)
+            try
             {
-                return NotFound();
+                var appointment = await _httpClient.GetFromJsonAsync<AppointmentToRead>($"Appointments/{appointmentId}");
+
+                if (appointment == null)
+                {
+                    return NotFound();
+                }
+
+                appointment.AppointmentStatus = "Complete";
+                appointment.DoctorFees = doctorFees;
+                appointment.PaymentMode = paymentMode;
+                appointment.PaymentStatus = "Paid";
+
+                var jsonContent = new StringContent(JsonSerializer.Serialize(appointment), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync($"Appointments/{appointmentId}", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+
+                ViewBag.ErrorMessage = "An error occurred while closing the appointment.";
+                return View("Error");
             }
-
-            // Update the appointment status, fees, and payment mode
-            appointment.AppointmentStatus = "Complete";
-            appointment.DoctorFees = doctorFees;
-            appointment.PaymentMode = paymentMode;
-            appointment.PaymentStatus = "Paid";
-
-            // Send the updated appointment data back to the API
-            var jsonContent = new StringContent(JsonSerializer.Serialize(appointment), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"Appointments/{appointmentId}", jsonContent);
-
-            if (response.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                // After completion, redirect back to the dashboard
-                return RedirectToAction("Index", "Home");
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
             }
-
-            ViewBag.ErrorMessage = "An error occurred while closing the appointment.";
-            return View("Error");
         }
-
 
         // POST: Appointments/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var response = await _httpClient.DeleteAsync($"Appointments/{id}");
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return RedirectToAction(nameof(Index));
-            }
+                var response = await _httpClient.DeleteAsync($"Appointments/{id}");
 
-            ViewBag.ErrorMessage = "An error occurred while deleting the appointment.";
-            return View("Error");
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ViewBag.ErrorMessage = "An error occurred while deleting the appointment.";
+                return View("Error");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
     }
 }

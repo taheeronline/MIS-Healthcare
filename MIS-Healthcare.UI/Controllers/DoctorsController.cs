@@ -4,7 +4,7 @@ using MIS_Healthcare.UI.DTOs.Doctor;
 using System.Text;
 using System.Text.Json;
 
-namespace MIS_Healthcare.MVC.Controllers
+namespace MIS_Healthcare.UI.Controllers
 {
     public enum Gender
     {
@@ -23,48 +23,72 @@ namespace MIS_Healthcare.MVC.Controllers
             _httpClient.BaseAddress = new Uri("https://localhost:7147/api/"); // Replace with your actual API URL
         }
 
-        // GET: Doctorss
+        // GET: Doctors
         public async Task<IActionResult> Index(string doctorType)
         {
-            var response = await _httpClient.GetAsync("Doctors");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var doctors = JsonSerializer.Deserialize<List<DoctorToRead>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                if (!string.IsNullOrEmpty(doctorType))
+                var response = await _httpClient.GetAsync("Doctors");
+                if (response.IsSuccessStatusCode)
                 {
-                    doctors = doctors.Where(d => d.DoctorType.Contains(doctorType, StringComparison.OrdinalIgnoreCase)).ToList();
+                    var json = await response.Content.ReadAsStringAsync();
+                    var doctors = JsonSerializer.Deserialize<List<DoctorToRead>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (!string.IsNullOrEmpty(doctorType))
+                    {
+                        doctors = doctors.Where(d => d.DoctorType.Contains(doctorType, StringComparison.OrdinalIgnoreCase)).ToList();
+                    }
+
+                    // Pass the search term to the view
+                    ViewBag.DoctorType = doctorType;
+
+                    return View(doctors);
                 }
 
-                // Pass the search term to the view
-                ViewBag.DoctorType = doctorType;
-
-                return View(doctors);
+                ViewBag.ErrorMessage = "An error occurred while fetching doctors.";
+                return View("Error");
             }
-
-            ViewBag.ErrorMessage = "An error occurred while fetching doctors.";
-            return View("Error");
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         // GET: Doctors/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var response = await _httpClient.GetAsync($"Doctors/{id}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var doctor = JsonSerializer.Deserialize<DoctorToRead>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                return View(doctor);
-            }
+                var response = await _httpClient.GetAsync($"Doctors/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var doctor = JsonSerializer.Deserialize<DoctorToRead>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return View(doctor);
+                }
 
-            return NotFound();
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         // GET: Doctors/Create
         public IActionResult Create()
         {
-            return View();
+            try
+            {
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         // POST: Doctors/Create
@@ -72,43 +96,59 @@ namespace MIS_Healthcare.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([FromForm] DoctorToRegister doctorDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return View(doctorDto);
+                if (!ModelState.IsValid)
+                {
+                    return View(doctorDto);
+                }
+
+                var jsonContent = new StringContent(JsonSerializer.Serialize(doctorDto), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("Doctors", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ViewBag.ErrorMessage = "An error occurred while adding the doctor.";
+                return View("Error");
             }
-
-            var jsonContent = new StringContent(JsonSerializer.Serialize(doctorDto), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("Doctors", jsonContent);
-
-            if (response.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                return RedirectToAction(nameof(Index));
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
             }
-
-            ViewBag.ErrorMessage = "An error occurred while adding the doctor.";
-            return View("Error");
         }
 
         // GET: Doctors/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var response = await _httpClient.GetAsync($"Doctors/{id}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var doctor = JsonSerializer.Deserialize<DoctorToUpdate>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                
-                // Populate ViewBag with Gender enum values
-                ViewBag.GenderOptions = new SelectList(Enum.GetValues(typeof(Gender)).Cast<Gender>().Select(g => new
+                var response = await _httpClient.GetAsync($"Doctors/{id}");
+                if (response.IsSuccessStatusCode)
                 {
-                    Value = g.ToString(),
-                    Text = g.ToString()
-                }), "Value", "Text", doctor.Gender.ToString());
+                    var json = await response.Content.ReadAsStringAsync();
+                    var doctor = JsonSerializer.Deserialize<DoctorToUpdate>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                return View(doctor);
+                    // Populate ViewBag with Gender enum values
+                    ViewBag.GenderOptions = new SelectList(Enum.GetValues(typeof(Gender)).Cast<Gender>().Select(g => new
+                    {
+                        Value = g.ToString(),
+                        Text = g.ToString()
+                    }), "Value", "Text", doctor.Gender.ToString());
+
+                    return View(doctor);
+                }
+
+                return NotFound();
             }
-
-            return NotFound();
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
 
         // POST: Doctors/Edit/5
@@ -116,26 +156,34 @@ namespace MIS_Healthcare.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [FromForm] DoctorToUpdate doctorDto)
         {
-            if (id != doctorDto.DoctorID)
+            try
             {
-                return BadRequest();
-            }
+                if (id != doctorDto.DoctorID)
+                {
+                    return BadRequest();
+                }
 
-            if (!ModelState.IsValid)
+                if (!ModelState.IsValid)
+                {
+                    return View(doctorDto);
+                }
+
+                var jsonContent = new StringContent(JsonSerializer.Serialize(doctorDto), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync($"Doctors/{id}", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ViewBag.ErrorMessage = "An error occurred while updating the doctor.";
+                return View("Error");
+            }
+            catch (Exception ex)
             {
-                return View(doctorDto);
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
             }
-
-            var jsonContent = new StringContent(JsonSerializer.Serialize(doctorDto), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"Doctors/{id}", jsonContent);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewBag.ErrorMessage = "An error occurred while updating the doctor.";
-            return View("Error");
         }
 
         // POST: Doctors/Delete/5
@@ -143,15 +191,23 @@ namespace MIS_Healthcare.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var response = await _httpClient.DeleteAsync($"Doctors/{id}");
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return RedirectToAction(nameof(Index));
-            }
+                var response = await _httpClient.DeleteAsync($"Doctors/{id}");
 
-            ViewBag.ErrorMessage = "An error occurred while deleting the doctor.";
-            return View("Error");
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ViewBag.ErrorMessage = "An error occurred while deleting the doctor.";
+                return View("Error");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+                return View("Error");
+            }
         }
     }
 }

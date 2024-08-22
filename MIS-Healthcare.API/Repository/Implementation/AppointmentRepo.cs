@@ -36,10 +36,12 @@ namespace MIS_Healthcare.API.Repository.Implementation
         {
             try
             {
-                return await _context.Appointments
+                var appointment=await _context.Appointments
                         .Include(a => a.Patient)
                         .Include(a => a.Doctor)
                         .FirstOrDefaultAsync(a => a.AppointmentID == id);
+
+                return appointment;
             }
             catch (Exception ex)
             {

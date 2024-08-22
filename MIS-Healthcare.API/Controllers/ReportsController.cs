@@ -64,10 +64,6 @@ namespace MIS_Healthcare.API.Controllers
                 {
                     ReportID = report.ReportID,
                     AppointmentID = report.AppointmentID,
-                    PatientID = report.PatientID,
-                    PatientName = $"{report.Patient.FirstName} {report.Patient.LastName}",
-                    DoctorID = report.DoctorID,
-                    DoctorName = $"{report.Doctor.FirstName} {report.Doctor.LastName}",
                     MedicinePrescribed = report.MedicinePrescribed,
                     DoctorComment = report.DoctorComment
                 };
@@ -98,8 +94,6 @@ namespace MIS_Healthcare.API.Controllers
                 var report = new Report
                 {
                     AppointmentID = reportDto.AppointmentID,
-                    PatientID = reportDto.PatientID,
-                    DoctorID = reportDto.DoctorID,
                     MedicinePrescribed = reportDto.MedicinePrescribed,
                     DoctorComment = reportDto.DoctorComment
                 };
@@ -110,10 +104,6 @@ namespace MIS_Healthcare.API.Controllers
                 {
                     ReportID = report.ReportID,
                     AppointmentID = report.AppointmentID,
-                    PatientID = report.PatientID,
-                    PatientName = $"{report.Patient.FirstName} {report.Patient.LastName}",
-                    DoctorID = report.DoctorID,
-                    DoctorName = $"{report.Doctor.FirstName} {report.Doctor.LastName}",
                     MedicinePrescribed = report.MedicinePrescribed,
                     DoctorComment = report.DoctorComment
                 };
@@ -145,8 +135,6 @@ namespace MIS_Healthcare.API.Controllers
                 {
                     ReportID = reportDto.ReportID,
                     AppointmentID = reportDto.AppointmentID,
-                    PatientID = reportDto.PatientID,
-                    DoctorID = reportDto.DoctorID,
                     MedicinePrescribed = reportDto.MedicinePrescribed,
                     DoctorComment = reportDto.DoctorComment
                 };

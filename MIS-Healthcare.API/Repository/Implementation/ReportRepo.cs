@@ -22,8 +22,6 @@ namespace MIS_Healthcare.API.Repository.Implementation
             {
                 return await _context.Reports
                        .Include(r => r.Appointment)
-                       .Include(r => r.Patient)
-                       .Include(r => r.Doctor)
                        .ToListAsync();
             }
             catch (Exception ex)
@@ -38,8 +36,6 @@ namespace MIS_Healthcare.API.Repository.Implementation
             {
                 return await _context.Reports
                         .Include(r => r.Appointment)
-                        .Include(r => r.Patient)
-                        .Include(r => r.Doctor)
                         .FirstOrDefaultAsync(r => r.ReportID == id);
             }
             catch (Exception ex)

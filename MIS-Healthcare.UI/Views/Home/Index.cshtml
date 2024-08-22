@@ -23,7 +23,7 @@
                         Concern:@appointment.Problem <br />
                         Date: @appointment.AppointmentDate.ToString("dd-MM-yyyy") <br />
                     </p>
-                    <form asp-action="CloseAppointment" asp-Controller="Appointments" method="post" class="form-inline">
+                    <form asp-action="CloseAppointment" asp-Controller="Appointments" method="post" class="form-inline" onsubmit="return confirmCloseAppointment(this);">
                         <input type="hidden" name="appointmentId" value="@appointment.AppointmentID" />
                         <div class="form-group mr-2">
                             <input type="number" class="form-control-sm mb-2 mt-2" name="doctorFees" placeholder="Doctor Fees" required />
@@ -44,3 +44,23 @@
     }
 </div>
 
+@section Scripts {
+    <script type="text/javascript">
+        function confirmCloseAppointment(form) {
+            var doctorFees = form['doctorFees'].value;
+            var paymentMode = form['paymentMode'].value;
+
+            if (doctorFees <= 0) {
+                alert("Doctor's fees must be greater than zero.");
+                return false;
+            }
+
+            if (!paymentMode) {
+                alert("Please select a payment mode.");
+                return false;
+            }
+
+            return confirm("Are you sure you want to close this appointment? Please ensure that the fees have been paid and the payment mode is correctly set.");
+        }
+    </script>
+}
